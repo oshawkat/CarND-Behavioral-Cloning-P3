@@ -38,9 +38,18 @@ if len(measurements) != len(images):
     print("WARNING - there is a mismatch in the number of training images \
          and labels")
 
+# Augment data by flipping image horizontally
+# Should eliminate left or right bias from training data
+augmented_images, augmented_measures = [], []
+for image, measurement in zip(images, measurements):
+    augmented_images.append(image)
+    augmented_measures.append(measurement)
+    augmented_images.append(cv2.flip(image, 1))
+    augmented_measures.append(measurement * -1.0)
+
 # Convert training data to numpy arrays for use with Keras/TensorFlow
-X_train = np.array(images)
-y_train = np.array(measurements)
+X_train = np.array(augmented_images)
+y_train = np.array(augmented_measures)
 print("Data set converted to numpy arrays")
 
 # Import required portions of Keras for building a CNN
