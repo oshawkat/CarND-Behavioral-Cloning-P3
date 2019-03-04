@@ -2,6 +2,7 @@
 
 # Local datasets
 /data
+*.h5
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
