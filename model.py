@@ -17,7 +17,7 @@ with open(csv_path) as csvfile:
     for line in csvreader:
         lines.append(line)
         line_count = line_count + 1
-print(str(line_count) + " lines read from the CSV")
+print("Lines read from the CSV file: " + str(line_count))
 
 # Construct lists of corresponding image data and steering angle measurements
 local_img_path = '../data/IMG/'
@@ -33,7 +33,7 @@ for line in lines:
     images.append(image)
     measurement = float(line[3])
     measurements.append(measurement)
-print("Loaded dataset has " + str(len(images)) + " examples")
+print("Loaded dataset examples: " + str(len(images)))
 if len(measurements) != len(images):
     print("WARNING - there is a mismatch in the number of training images \
          and labels")
@@ -43,16 +43,31 @@ X_train = np.array(images)
 y_train = np.array(measurements)
 print("Data set converted to numpy arrays")
 
-# Create a very basic model to output steering angle
+# Import required portions of Keras for building a CNN
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda
-from keras.layers.convolutional import Convolution2D
+from keras.layers.convolutional import Conv2D
+from keras.layers.pooling import MaxPooling2D
 
+# Create a very basic model to output steering angle
 model = Sequential()
 # Normalize the data and mean shift to zero
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160, 320, 3)))
+
+# Add two convolutional layers
+pool_size = 2
+num_filters = 10
+filter_size = 5
+model.add(Conv2D(num_filters, filter_size, activation='relu'))
+model.add(MaxPooling2D(pool_size=pool_size))
+model.add(Conv2D(num_filters, filter_size, activation='relu'))
+model.add(MaxPooling2D(pool_size=pool_size))
+
 model.add(Flatten())
+model.add(Dense(120))
+model.add(Dense(84))
 model.add(Dense(1))
+
 
 model.compile(loss='mse', optimizer='adam')
 model.fit(X_train, y_train, validation_split=.2, shuffle=True, nb_epoch=7)
