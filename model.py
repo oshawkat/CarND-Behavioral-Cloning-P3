@@ -54,7 +54,7 @@ print("Data set converted to numpy arrays")
 
 # Import required portions of Keras for building a CNN
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda
+from keras.layers import Flatten, Dense, Lambda, Cropping2D
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
 
@@ -62,7 +62,10 @@ from keras.layers.pooling import MaxPooling2D
 model = Sequential()
 # Normalize the data and mean shift to zero
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160, 320, 3)))
-
+# Crop top and bottom of image
+top_crop_px = 70
+bot_crop_px = 20
+model.add(Cropping2D(cropping=((top_crop_px, bot_crop_px), (0, 0))))
 # Add two convolutional layers
 pool_size = 2
 num_filters = 10
@@ -71,7 +74,7 @@ model.add(Conv2D(num_filters, filter_size, activation='relu'))
 model.add(MaxPooling2D(pool_size=pool_size))
 model.add(Conv2D(num_filters, filter_size, activation='relu'))
 model.add(MaxPooling2D(pool_size=pool_size))
-
+# Fully connected layers for output
 model.add(Flatten())
 model.add(Dense(120))
 model.add(Dense(84))
