@@ -26,13 +26,22 @@ measurements = []
 for line in lines:
     # File paths will likely differ from the data collection machine
     # so update to local paths
-    source_path = line[0]
-    filename = source_path.split('/')[-1]
-    current_path = local_img_path + filename
-    image = ndimage.imread(current_path)
-    images.append(image)
-    measurement = float(line[3])
-    measurements.append(measurement)
+    center_path = local_img_path + line[0].split('/')[-1]
+    left_path = local_img_path + line[1].split('/')[-1]
+    right_path = local_img_path + line[2].split('/')[-1]
+
+    center_image = ndimage.imread(center_path)
+    left_image = ndimage.imread(left_path)
+    right_image = ndimage.imread(right_path)
+
+    camera_correction = 0.2  # Steering angle correction for non-center images
+    center_angle = float(line[3])
+    left_angle = center_angle + camera_correction
+    right_angle = center_angle - camera_correction
+
+    # Add dataset images and labels from all cameras
+    images.extend([center_image, left_image, right_image])
+    measurements.extend([center_angle, left_angle, right_angle])
 print("Loaded dataset examples: " + str(len(images)))
 if len(measurements) != len(images):
     print("WARNING - there is a mismatch in the number of training images \
