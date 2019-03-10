@@ -1,67 +1,23 @@
+import os
 import math
 import csv
-import numpy as np
-from scipy import ndimage
 from sklearn.model_selection import train_test_split
-from sklearn.utils import shuffle
 # Required portions of Keras for building a CNN
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Cropping2D
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
+import augment
 
 
-def generator(lines, batch_size=32, augment=False):
-    """Python data generator for feeding Keras network
-
-    Generator provides a subset of the data every time it is iterated. Will
-    also selectively apply data augmentation
-
-    Input:
-        lines: list of lists with each outer element corresponding to a list
-            of image path and steering angle, respectively
-        batch_size: how many examples from the dataset to generate at once
-        augment: boolean representing whether or not to apply data
-            augmentation.  This must be false for any validation or testing set
-
-    Output:
-        X_data: batch_size number of images in a numpy array
-        y_data: corresponding batch_size number of labels for X_data, also as
-            a numpy array
-
-    """
-
-    num_samples = len(lines)
-    while 1:    # Loop generator indefinitely
-        shuffle(lines)  # Shuffle data between epochs
-        for offset in range(0, num_samples, batch_size):
-            batch_samples = lines[offset: offset + batch_size]
-
-            images = []
-            steer_angles = []
-
-            for line in batch_samples:
-                image = ndimage.imread(line[0])
-                steer_angle = line[1]
-
-                # TODO: Add image augmentation
-                # if augment:
-                #     image, steer_angle = image_augment(image, steer_angle)
-
-                images.append(image)
-                steer_angles.append(steer_angle)
-
-            # Convert lists to numpy arrays for use with Keras
-            X_data = np.array(images)
-            y_data = np.array(steer_angles)
-
-            yield shuffle(X_data, y_data)
-
+# Set Save paths for output (and create directory as needed)
+output_dir = 'output/'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 # Load recorded driving data from the simulator
 # This is based on the code found in the Udacity Self-driving
 # Nanodegree lecture on behavior cloning
-
 # Extract the csv with dataset information into a more usable list
 csv_path = '../data/driving_log.csv'
 lines = []
@@ -77,7 +33,7 @@ print("Lines read from the CSV file: " + str(line_count))
 # Create a new list with a single image path and steering angle per line
 # Original list had 3 images (center, left, right) and a single steer angle
 local_img_path = '../data/IMG/'
-camera_correction = 0.2  # Steering angle correction for non-center images
+camera_correction = 0.25  # Steering angle correction for non-center images
 single_lines = []
 for line in lines:
     center_path = local_img_path + line[0].split('/')[-1]
@@ -97,8 +53,19 @@ train_lines, validation_lines = train_test_split(single_lines, test_size=0.2)
 
 # Create generators to reduce memory requirements while training
 batch_size = 32
-train_generator = generator(train_lines, batch_size=batch_size, augment=True)
-validation_generator = generator(validation_lines, batch_size=batch_size)
+train_generator = augment.generator(train_lines, batch_size=batch_size,
+                                    augment=True)
+validation_generator = augment.generator(validation_lines,
+                                         batch_size=batch_size)
+
+# Save a visualization of the dataset (random images and the distribution of
+# steering angles)
+augment.save_dataset_visual(train_lines, output_dir)
+print("Saved sample training set visualization")
+
+# Save a visualization of data augmentation
+augment.save_augmentation_visual(train_lines, output_dir)
+print("Saves data augmentation example")
 
 # Construct a CNN in Keras to output steering angle based on camera image
 model = Sequential()
@@ -133,4 +100,4 @@ model.fit_generator(train_generator,
                                                batch_size),
                     epochs=epochs, verbose=1)
 
-model.save('network.h5')
+model.save(output_dir + 'network.h5')
