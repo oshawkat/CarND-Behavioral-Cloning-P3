@@ -4,9 +4,10 @@ import csv
 from sklearn.model_selection import train_test_split
 # Required portions of Keras for building a CNN
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, Dropout
 from keras.layers.convolutional import Conv2D
 from keras.layers.pooling import MaxPooling2D
+from keras import regularizers
 import augment
 
 
@@ -68,9 +69,12 @@ augment.save_augmentation_visual(train_lines, output_dir)
 print("Saves data augmentation example")
 
 # Construct a CNN in Keras to output steering angle based on camera image
+drop_rate = 0.4
 model = Sequential()
+# Input image with dropout
+model.add(Dropout(0.3, input_shape=(160, 320, 3)))
 # Normalize the data and mean shift to zero
-model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160, 320, 3)))
+model.add(Lambda(lambda x: x / 255.0 - 0.5))
 # Crop top and bottom of image
 top_crop_px = 70
 bot_crop_px = 20
@@ -79,14 +83,20 @@ model.add(Cropping2D(cropping=((top_crop_px, bot_crop_px), (0, 0))))
 pool_size = 2
 num_filters = 10
 filter_size = 5
-model.add(Conv2D(num_filters, filter_size, activation='relu'))
+model.add(Conv2D(num_filters, filter_size, activation='relu', 
+                         kernel_regularizer=regularizers.l2(0.01)))
+model.add(Dropout(drop_rate))
 model.add(MaxPooling2D(pool_size=pool_size))
-model.add(Conv2D(num_filters, filter_size, activation='relu'))
+model.add(Conv2D(num_filters, filter_size, activation='relu', 
+                         kernel_regularizer=regularizers.l2(0.01)))
+model.add(Dropout(drop_rate))
 model.add(MaxPooling2D(pool_size=pool_size))
 # Fully connected layers for output
 model.add(Flatten())
-model.add(Dense(120))
-model.add(Dense(84))
+model.add(Dense(120, kernel_regularizer=regularizers.l2(0.01)))
+model.add(Dropout(drop_rate))
+model.add(Dense(84, kernel_regularizer=regularizers.l2(0.01)))
+model.add(Dropout(drop_rate))
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
