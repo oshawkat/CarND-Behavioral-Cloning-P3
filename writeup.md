@@ -14,7 +14,7 @@ The primary steps of this project are:
 [image2]: ./output/data_histogram.png "Data Histogram"
 [image3]: ./output/data_augmentation.png "Data Augmentation"
 [image4]: ./output/model_architecture.png "Model Diagram"
----
+
 
 ### Model Architecture and Training Strategy
 
