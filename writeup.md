@@ -24,7 +24,7 @@ While I experimented with models of varying architecture and complexity, I settl
 
 #### 2. Attempts to reduce overfitting in the model
 
-Though the more complex models I experimented with required changes to reduce overfitting (eg dropout, L2 regularization), this simple model did not require it for the 5 epochs on which it was trained.
+Though the more complex models I experimented with required changes to reduce overfitting (eg dropout, L2 regularization), this simple model did not require it for the 3 epochs on which it was trained but increasing the number of epochs results in overfitting
 
 #### 3. Model parameter tuning
 
@@ -32,7 +32,7 @@ The model used an Adam optimizer, using the default initial rate of 0.001, so th
 
 #### 4. Appropriate training data
 
-The model was trained on the pre-recorded data provided by Udacity, which consists of the car going around Track One, in the counter-clockwise direction, keeping to the center of the lane.
+The model was trained on the pre-recorded data provided by Udacity, which consists of the car going around Track One, in the counter-clockwise direction, keeping to the center of the lane.  After experiencing significant issues trying to get the car to turn hard enough around the left turn after the bridge, I recorded some data of my own and found that it helped prevent the car from understeering.
 
 I performed some additional data augmentation to expand both the quantity and diversity of the training data.  Side camera images, from the provided data, are also utilized by modifying their steering angles
 
@@ -54,17 +54,17 @@ I implemented a data generator to enable additional data augmentation.  Without 
 
 I also experimented with much larger and more complex network architectures, including one inspired by the *[End to End Learning for Self-Driving Cars]*(http://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf) paper.  Their 5 layer CNN ultimately proved ineffective for my task as the car generally ended up under-steering in the curves.  Liberal application of dropout and L2 regularization helped to reduce overfitting but training times were still quite long (~4 minutes per epoch).  Both the training and validation accuracy, even without any overfitting prevention techniques, were much higher than even a single layer CNN.
 
+In the end, the optimal solution was to revert back to a simpler model, a single layer CNN, and increase the quantity of raw (ie non-augmented) training data.  Specifically, the model consistently under-steered around the turn after the bridge but recording some recovery data, as well as nominal data around the track in the opposite direction, solved this issue.
+
 #### 2. Final Model Architecture
 
-In the end, I returned to a simple, single layer CNN architecture as it provided similar or better driving performance relative to other tested architectures while being the simplest and fastest to train (~42 s/epoch).  No dropout or regularization was required to prevent overfitting
-
-**TODO** add model diagram
+In the end, I returned to a simple, single layer CNN architecture as it provided similar or better driving performance relative to other tested architectures while being the simplest and fastest to train (~80 s/epoch).  No dropout or regularization was required to prevent overfitting
 
 ![alt text][image4]
 
 #### 3. Creation of the Training Set & Training Process
 
-I did not record any new driving data in the simulator and instead chose to use the Udacity provided dataset along with my own augmentation.  20% of the data was reserved for the validation set to ensure that the models do no overfit.  A sample of the original training data, along with steering angles, is shown below
+I originally did not record any new driving data in the simulator and instead chose to use the Udacity provided dataset along with my own augmentation.  After suffering through under-steer issues, I decided to record some recovery data around the turn that was causing issues (left turn after the bridge) as well as nominal data, driven clock-wise.  20% of the data was reserved for the validation set to ensure that the models do no overfit.  A sample of the training data, along with steering angles, is shown below
 
 ![alt text][image1]
 
@@ -76,4 +76,4 @@ I tested additional augmentation techniques, shown below, to increase the divers
 
 ![alt text][image3]
 
-All data is shuffled between epochs.  The optimal number of epochs to train varied widely based on model architecture, data augmentation, and regularization techniques.  5 epochs was sufficient for most models but complex ones that relied on more data augmentation and regularization required more.  Additional training would either overfit the training dataset (better training accuracy than validation) or not result in any significant improvement in model performance
+All data is shuffled between epochs.  The optimal number of epochs to train varied widely based on model architecture, data augmentation, and regularization techniques.  3 epochs was sufficient for most models but complex ones that relied on more data augmentation and regularization required more.  Additional training would either overfit the training dataset (better training accuracy than validation) or not result in any significant improvement in model performance
