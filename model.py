@@ -54,7 +54,7 @@ train_lines, validation_lines = train_test_split(single_lines, test_size=0.2)
 # Create generators to reduce memory requirements while training
 batch_size = 32
 train_generator = augment.generator(train_lines, batch_size=batch_size,
-                                    augment=False)
+                                    augment=True)
 validation_generator = augment.generator(validation_lines,
                                          batch_size=batch_size)
 
