@@ -43,7 +43,11 @@ def generator(lines, batch_size=32, augment=False):
 
                 # Apply data augmentation as necessary
                 if augment:
-                    image, steer_angle = random_all(image, steer_angle)
+                    image, steer_angle = random_horizontal_flip(
+                        image, steer_angle)
+                    # image, steer_angle = random_all(image, steer_angle)
+                    # image = random_shadows(image)
+                    # image = random_gaussian(image)
 
                 images.append(image)
                 steer_angles.append(steer_angle)
@@ -150,7 +154,7 @@ def random_brightness(img, max_scale=0.5):
     return rgb_img
 
 
-def random_translation(img, angle, max_tx=80, max_ty=20, x_steer_corr_px=0.001,
+def random_translation(img, angle, max_tx=80, max_ty=20, x_steer_corr_px=0.01,
                        y_steer_corr_px=0.001):
     """Randomly shift image in view
 
@@ -233,11 +237,13 @@ def random_all(image, angle):
 
     # Apply augmentations that can impact steering angle first
     y_steer_corr_px = 0.001
-    x_steer_corr_px = 0.004   # Initial value taken from Vivek Yadav's blog:
+    x_steer_corr_px = 0.01   # Initial value taken from Vivek Yadav's blog:
+    max_tx = 30
+    max_ty = 20
     # https://chatbotslife.com/using-augmentation-to-mimic-human-driving-
     # 496b569760a9
     img, angle = random_horizontal_flip(img, angle)
-    img, angle = random_translation(img, angle, max_tx=80, max_ty=30,
+    img, angle = random_translation(img, angle, max_tx=max_tx, max_ty=max_ty,
                                     x_steer_corr_px=x_steer_corr_px,
                                     y_steer_corr_px=y_steer_corr_px)
 
